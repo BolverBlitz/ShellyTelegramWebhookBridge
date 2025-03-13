@@ -31,7 +31,12 @@ jobs:
 
       - name: Build for ${{ matrix.os }} ${{ matrix.arch }}
         run: |
-          GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -o bin/telegram-api-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.ext }}
+          if [[ "${{ matrix.os }}" == "linux" ]]; then
+            sudo apt-get install -y musl-tools
+            CC=musl-gcc CGO_ENABLED=1 GOOS=linux GOARCH=${{ matrix.arch }} go build -ldflags "-linkmode external -extldflags -static" -o bin/telegram-api-${{ matrix.os }}-${{ matrix.arch }}
+          else
+            GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -o bin/telegram-api-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.ext }}
+          fi
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
